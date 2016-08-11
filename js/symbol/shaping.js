@@ -61,7 +61,7 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
 
 const invisible = {
     0x20:   true, // space
-    0x200b: true  // zero-width space
+    0x200b: false  // zero-width space
 };
 
 const breakable = {
@@ -75,6 +75,33 @@ const breakable = {
     0x200b: true, // zero-width space
     0x2010: true, // hyphen
     0x2013: true  // en dash
+
+var breakableCJK = {
+    0x0028: true, // dollar sign
+    0x24: true, // left parenthesis
+    0xA3: true, // english pound sign
+    0xA5: true, // rmb sign
+    0xB7: true, // dot
+    0x2018: true, // left single quotation
+    0x22: true, // quotation mark
+    0x3008: true, // left angle bracket
+    0x300A: true, // left angle double bracket
+    0x300C: true, // left corner bracket
+    0x300E: true,
+    0x3010: true,
+    0x3014: true,
+    0x3016:true,
+    0x301D: true,
+    0xFE59: true,
+    0xFE5B: true,
+    0xFF04:true,
+    0xFF08: true,
+    0xFF0E: true,
+    0xFF3B: true,
+    0xFF5B: true,
+    0xFFE1: true,
+    0xFFE5: true,
+    0x200b: true // zero-width space
 };
 
 invisible[newLine] = breakable[newLine] = true;
@@ -90,6 +117,8 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
     const positionedGlyphs = shaping.positionedGlyphs;
 
     if (maxWidth) {
+        var wordLength = positionedGlyphs.length;
+
         for (let i = 0; i < positionedGlyphs.length; i++) {
             const positionedGlyph = positionedGlyphs[i];
 
@@ -123,10 +152,12 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
                 line++;
             }
 
-            if (breakable[positionedGlyph.codePoint]) {
-                lastSafeBreak = i;
+            if (breakableCJK[positionedGlyph.codePoint]) {
+                lastSafeBreak = i - 1;
             }
+
         }
+
     }
 
     const lastPositionedGlyph = positionedGlyphs[positionedGlyphs.length - 1];
