@@ -56,43 +56,68 @@
 <script>
 var map = window.map = new mapboxgl.Map({
     container: 'map',
-    zoom: 12.5,
-    center: [-77.01866, 38.888],
-    style: 'mapbox://styles/mapbox/streets-v9',
-    hash: true
+    // zoom: 16,
+
+    // from central park, pitched, looking S
+    // center: [-73.97313,40.76261],
+    // pitch: 80,
+    // bearing: 180,
+
+    // no pitch, center SF
+    // center: [-74.00758,40.72464],
+    // pitch: 80,
+    // bearing: 270,
+    // light: {
+    //     color: 'white',
+    //     anchor: 'viewport',
+    //     intensity: 0.4
+    // },
+
+    // style: 'debug/sf.json',
+    // style: 'debug/mapbox-streets-v8.json',
+    // style: 'debug/extrusion-hole.json',
+    // style: 'debug/extrusion-hole-vector.json',
+    // style: 'debug/sun.json',
+    style: 'debug/light.json',
+    // style: 'debug/streets-v8-FULL.json',
+    // style: 'node_modules/mapbox-gl-test-suite/render-tests/background-opacity/overlay/style.json',
+    // style: 'mapbox://styles/mapbox/satellite-streets-v9',
+    // style: 'debug/test.json',
+    // style: 'paris.json',
+    hash: false
 });
 
 map.addControl(new mapboxgl.Navigation());
 map.addControl(new mapboxgl.Geolocate());
-map.addControl(new mapboxgl.Scale());
+// map.addControl(new mapboxgl.Scale());
 
 map.on('load', function() {
-    map.addSource('geojson', {
-        "type": "geojson",
-        "data": "/node_modules/mapbox-gl-test-suite/data/linestring.geojson"
-    });
+    // map.addSource('geojson', {
+    //     "type": "geojson",
+    //     "data": "/node_modules/mapbox-gl-test-suite/data/linestring.geojson"
+    // });
 
-    map.addLayer({
-        "id": "route",
-        "type": "line",
-        "source": "geojson",
-        "paint": {
-            "line-color": "#EC8D8D",
-            "line-width": {
-                "base": 1.5,
-                "stops": [
-                    [
-                        5,
-                        0.75
-                    ],
-                    [
-                        18,
-                        32
-                    ]
-                ]
-            }
-        }
-    }, 'country-label-lg');
+    // map.addLayer({
+    //     "id": "route",
+    //     "type": "line",
+    //     "source": "geojson",
+    //     "paint": {
+    //         "line-color": "#EC8D8D",
+    //         "line-width": {
+    //             "base": 1.5,
+    //             "stops": [
+    //                 [
+    //                     5,
+    //                     0.75
+    //                 ],
+    //                 [
+    //                     18,
+    //                     32
+    //                 ]
+    //             ]
+    //         }
+    //     }
+    // }, 'country-label-lg');
 
     var bufferTimes = {};
     map.on('tile.stats', function(bufferTimes) {
@@ -115,11 +140,8 @@ map.on('load', function() {
 });
 
 map.on('click', function(e) {
-    if (e.originalEvent.shiftKey) return;
-    (new mapboxgl.Popup())
-        .setLngLat(map.unproject(e.point))
-        .setHTML("<h1>Hello World!</h1>")
-        .addTo(map);
+    var features = map.queryRenderedFeatures(e.point, { layers: ['buildingtada']});
+    console.log(features);
 });
 
 document.getElementById('show-tile-boundaries-checkbox').onclick = function() {

@@ -16,7 +16,7 @@ var Hash = require('./hash');
 var bindHandlers = require('./bind_handlers');
 
 var Camera = require('./camera');
-var Light = require('./light');
+// var Light = require('./light');
 var LngLat = require('../geo/lng_lat');
 var LngLatBounds = require('../geo/lng_lat_bounds');
 var Point = require('point-geometry');
@@ -31,12 +31,12 @@ var defaultOptions = {
     bearing: 0,
     pitch: 0,
 
-    light: {
-        anchor: 'viewport',
-        direction: [1.15, 210, 30],
-        color: 'white',
-        intensity: 0.5
-    },
+    // light: {
+    //     anchor: 'viewport',
+    //     direction: [1.15, 210, 30],
+    //     color: 'white',
+    //     intensity: 0.5
+    // },
 
     minZoom: defaultMinZoom,
     maxZoom: defaultMaxZoom,
@@ -132,7 +132,7 @@ var defaultOptions = {
  */
 var Map = module.exports = function(options) {
     options = util.extend({}, defaultOptions, options);
-    options.light = util.extend({}, defaultOptions.light, options.light);
+    // options.light = util.extend({}, defaultOptions.light, options.light);
 
     this._interactive = options.interactive;
     this._failIfMajorPerformanceCaveat = options.failIfMajorPerformanceCaveat;
@@ -206,11 +206,11 @@ var Map = module.exports = function(options) {
     if (options.classes) this.setClasses(options.classes);
     if (options.style) this.setStyle(options.style);
 
-    if (options.style) {
-        this.style.on('load', this._setLightOptions.bind(this, options.light, this.style._light));
-    } else {
-        this.on('load', this._setLightOptions.bind(this, options.light));
-    }
+    // if (options.style) {
+    //     this.style.on('load', this._setLightOptions.bind(this, options.light, this.style._light));
+    // } else {
+    //     this.on('load', this._setLightOptions.bind(this, options.light));
+    // }
 
     if (options.attributionControl) this.addControl(new Attribution(options.attributionControl));
 
@@ -223,7 +223,7 @@ var Map = module.exports = function(options) {
 
 util.extend(Map.prototype, Evented);
 util.extend(Map.prototype, Camera.prototype);
-util.extend(Map.prototype, Light.prototype);
+// util.extend(Map.prototype, Light.prototype);
 util.extend(Map.prototype, /** @lends Map.prototype */{
 
     /**
@@ -649,7 +649,7 @@ util.extend(Map.prototype, /** @lends Map.prototype */{
             this.style = style;
         } else {
             this.style = new Style(style, this.animationLoop);
-            if (style.light) this._setLightOptions(style.light);
+            // if (style.light) this._setLightOptions(style.light);
         }
 
         this.style
@@ -886,6 +886,33 @@ util.extend(Map.prototype, /** @lends Map.prototype */{
     },
 
     /**
+     * Sets the any combination of light values, with an animated transition
+     * between old and new values (with the exception of `anchor`, which does
+     * not animate). The map will retain its current values for any
+     * details not specified in `options`.
+     *
+     * @param {LightOptions} options Options describing the target light properties of the transition.
+     * @param {Object} [eventData] Data to propagate to any event listeners.
+     * @fires lightstart
+     * @fires lightend
+     * @returns {Map} `this`
+     */
+    setLight: function(lightOptions) {
+        this.style.setLight(lightOptions);
+        this._update(true);
+        return this;
+    },
+
+    /**
+     * Returns the value of the light object.
+     *
+     * @returns {LightOptions} light Light object as denoted in the style spec.
+     */
+    getLight: function() {
+        return this.style.getLight();
+    },
+
+    /**
      * Returns the map's containing HTML element.
      *
      * @returns {HTMLElement} The map's container.
@@ -1060,7 +1087,7 @@ util.extend(Map.prototype, /** @lends Map.prototype */{
      * @private
      */
     _render: function() {
-        try {
+        // try {
             if (this.style && this._styleDirty) {
                 this._styleDirty = false;
                 this.style.update(this._classes, this._classOptions);
@@ -1098,9 +1125,9 @@ util.extend(Map.prototype, /** @lends Map.prototype */{
                 this._rerender();
             }
 
-        } catch (error) {
-            this.fire('error', {error: error});
-        }
+        // } catch (error) {
+        //     this.fire('error', {error: error});
+        // }
 
         return this;
     },

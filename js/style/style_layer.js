@@ -294,6 +294,7 @@ StyleLayer.prototype = util.inherit(Evented, {
 
         var newTransition = this._paintTransitions[name] =
             new StyleTransition(spec, declaration, oldTransition, transitionOptions);
+// if (!newTransition.instant()) debugger;
 
         if (!newTransition.instant()) {
             newTransition.loopID = animationLoop.set(newTransition.endTime - Date.now());
