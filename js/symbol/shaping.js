@@ -24,7 +24,7 @@ function Shaping(positionedGlyphs, text, top, bottom, left, right) {
     this.right = right;
 }
 
-function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, translate, verticalOrientation) {
+function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, translate, verticalHeight, verticalOrientation) {
 
     var positionedGlyphs = [];
     var shaping = new Shaping(positionedGlyphs, text, translate[1], translate[1], translate[0], translate[0]);
@@ -42,23 +42,15 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
         if (!glyph) continue;
 
         positionedGlyphs.push(new PositionedGlyph(codePoint, x, y, glyph));
-        // commenting out horizontal orientation for now
-        //x += glyph.advance + spacing;
-        //console.log("vertical orientation from shapeText: " + verticalOrientation);
         if (verticalOrientation) {
-            y += 24 + spacing;
-            //console.log("vertical orientation from shapeText: " + verticalOrientation);
+            y += verticalHeight + spacing;
         } else {
             x += glyph.advance + spacing;
         }
     }
 
     if (!positionedGlyphs.length) return false;
-    //if (positionedGlyphs.length > 13) {
-        linewrapLong(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, verticalOrientation);
-    //} else {
-        //linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate);
-    //}
+    linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, verticalHeight, verticalOrientation);
     return shaping;
 }
 
@@ -100,78 +92,7 @@ var breakableCJK = {
      // zero-width space
 };
 
-function linewrapLong(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, verticalOrientation) {
-    var lastSafeBreak = null;
-
-    var lengthBeforeCurrentLine = 0;
-    var lineStartIndex = 0;
-    var line = 0;
-
-    var maxLineLength = 0;
-
-    var positionedGlyphs = shaping.positionedGlyphs;
-    //console.log("vertical orientation from linewraplong: " + verticalOrientation);
-
-    if (maxWidth) {
-
-        for (var i = 0; i < positionedGlyphs.length; i++) {
-            var positionedGlyph = positionedGlyphs[i];
-
-            positionedGlyph.x -= lengthBeforeCurrentLine;
-            positionedGlyph.y += lineHeight * line;
-
-            if (positionedGlyph.x > maxWidth && lastSafeBreak !== null) {
-
-                var lineLength = positionedGlyphs[lastSafeBreak + 1].x;
-                maxLineLength = Math.max(lineLength, maxLineLength);
-
-                for (var k = lastSafeBreak + 1; k <= i; k++) {
-                    positionedGlyphs[k].y += lineHeight;
-                    positionedGlyphs[k].x -= lineLength;
-                }
-
-                if (justify) {
-                    // Collapse invisible characters.
-                    var lineEnd = lastSafeBreak;
-                    if (invisible[positionedGlyphs[lastSafeBreak].codePoint]) {
-                        lineEnd--;
-                    }
-
-                    justifyLine(positionedGlyphs, glyphs, lineStartIndex, lineEnd, justify);
-                }
-
-                lineStartIndex = lastSafeBreak + 1;
-                lastSafeBreak = null;
-                lengthBeforeCurrentLine += lineLength;
-                line++;
-            }
-            lastSafeBreak = i;
-        }
-    }
-
-    var lastPositionedGlyph = positionedGlyphs[positionedGlyphs.length - 1];
-
-    // For vertical labels, calculate 'length' along the y axis, and 'height' along the x axis 
-    var axisPrimary = verticalOrientation ? 'y' : 'x';
-    var advance = verticalOrientation ? 24 : glyphs[lastPositionedGlyph.codePoint].advance;
-    var leading = verticalOrientation ? (lineHeight - 24 + glyphs[lastPositionedGlyph.codePoint].advance) : lineHeight;
-
-    var lastLineLength = lastPositionedGlyph[axisPrimary] + advance;
-    maxLineLength = Math.max(maxLineLength, lastLineLength);
-
-    var height = (line + 1) * leading;
-
-    justifyLine(positionedGlyphs, glyphs, lineStartIndex, positionedGlyphs.length - 1, justify);
-    align(positionedGlyphs, justify, horizontalAlign, verticalAlign, maxLineLength, lineHeight, line, translate);
-
-    // Calculate the bounding box
-    shaping.top += verticalOrientation ? -verticalAlign * maxLineLength : -verticalAlign * height;
-    shaping.bottom = verticalOrientation ? shaping.top + maxLineLength : shaping.top + height;
-    shaping.left += verticalOrientation ? -horizontalAlign * height : -horizontalAlign * maxLineLength;
-    shaping.right = verticalOrientation ? shaping.left + height : shaping.left + maxLineLength;
-}
-
-function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate) {
+function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, verticalHeight, verticalOrientation) {
     var lastSafeBreak = null;
 
     var lengthBeforeCurrentLine = 0;
@@ -218,31 +139,39 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
                 line++;
             }
 
-            if (breakableCJK[positionedGlyph.codePoint]) {
-                lastSafeBreak = i - 1;
+            if (positionedGlyphs.length > 13) {
+                if (breakableCJK[positionedGlyph.codePoint]) {
+                    lastSafeBreak = i - 1;
+                }
+                if (!(breakableCJK[positionedGlyph.codePoint]) && positionedGlyph.codePoint > 19968) {
+                    lastSafeBreak = Math.round(wordLength / 3);
+                }
+            } else {
+                lastSafeBreak = i;
             }
-            if (!(breakableCJK[positionedGlyph.codePoint]) && positionedGlyph.codePoint > 19968) {
-                lastSafeBreak = Math.round(wordLength / 3);
-            }
-
         }
-
     }
 
     var lastPositionedGlyph = positionedGlyphs[positionedGlyphs.length - 1];
-    var lastLineLength = lastPositionedGlyph.x + glyphs[lastPositionedGlyph.codePoint].advance;
+
+    // For vertical labels, calculate 'length' along the y axis, and 'height' along the x axis 
+    var axisPrimary = verticalOrientation ? 'y' : 'x';
+    var advance = verticalOrientation ? verticalHeight : glyphs[lastPositionedGlyph.codePoint].advance;
+    var leading = verticalOrientation ? (lineHeight - verticalHeight + glyphs[lastPositionedGlyph.codePoint].advance) : lineHeight;
+
+    var lastLineLength = lastPositionedGlyph[axisPrimary] + advance;
     maxLineLength = Math.max(maxLineLength, lastLineLength);
 
-    var height = (line + 1) * lineHeight;
+    var height = (line + 1) * leading;
 
     justifyLine(positionedGlyphs, glyphs, lineStartIndex, positionedGlyphs.length - 1, justify);
     align(positionedGlyphs, justify, horizontalAlign, verticalAlign, maxLineLength, lineHeight, line, translate);
 
     // Calculate the bounding box
-    shaping.top += -verticalAlign * height;
-    shaping.bottom = shaping.top + height;
-    shaping.left += -horizontalAlign * maxLineLength;
-    shaping.right = shaping.left + maxLineLength;
+    shaping.top += verticalOrientation ? -verticalAlign * maxLineLength : -verticalAlign * height;
+    shaping.bottom = verticalOrientation ? shaping.top + maxLineLength : shaping.top + height;
+    shaping.left += verticalOrientation ? -horizontalAlign * height : -horizontalAlign * maxLineLength;
+    shaping.right = verticalOrientation ? shaping.left + height : shaping.left + maxLineLength;
 }
 
 function justifyLine(positionedGlyphs, glyphs, start, end, justify) {
