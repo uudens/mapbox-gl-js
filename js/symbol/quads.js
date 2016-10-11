@@ -149,15 +149,37 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine, vertic
 
         if (!rect) continue;
 
-        var centerX = (positionedGlyph.x + glyph.advance / 2) * boxScale;
+
+        var centerX = verticalOrientation ? (positionedGlyph.y + 24 / 2) * boxScale : (positionedGlyph.x + glyph.advance / 2) * boxScale;
+        //var centerX = (positionedGlyph.x + glyph.advance / 2) * boxScale;
+        /*if (verticalOrientation) {
+            console.log("vertical centerX: " + centerX);
+        } else {
+            console.log("horizontal centerX: " + centerX);
+        }*/
+
+        var x1 = positionedGlyph.x + glyph.left,
+            y1 = positionedGlyph.y - glyph.top,
+            x2 = x1 + rect.w,
+            y2 = y1 + rect.h;
+
+        if (verticalOrientation) {
+
+        }
+
+
+        var otl = new Point(x1, y1),
+            otr = new Point(x2, y1),
+            obl = new Point(x1, y2),
+            obr = new Point(x2, y2);
 
         var glyphInstances;
         var labelMinScale = minScale;
         if (alongLine) {
             glyphInstances = [];
-            labelMinScale = getSegmentGlyphs(glyphInstances, anchor, centerX, line, anchor.segment, true);
+            labelMinScale = getSegmentGlyphs(glyphInstances, anchor, centerX, line, anchor.segment, true, verticalOrientation);
             if (keepUpright) {
-                labelMinScale = Math.min(labelMinScale, getSegmentGlyphs(glyphInstances, anchor, centerX, line, anchor.segment, false));
+                labelMinScale = Math.min(labelMinScale, getSegmentGlyphs(glyphInstances, anchor, centerX, line, anchor.segment, false, verticalOrientation));
             }
 
         } else {
@@ -170,7 +192,7 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine, vertic
             }];
         }
 
-        var x1 = positionedGlyph.x + glyph.left,
+        /*var x1 = positionedGlyph.x + glyph.left,
             y1 = positionedGlyph.y - glyph.top,
             x2 = x1 + rect.w,
             y2 = y1 + rect.h,
@@ -178,7 +200,7 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine, vertic
             otl = new Point(x1, y1),
             otr = new Point(x2, y1),
             obl = new Point(x1, y2),
-            obr = new Point(x2, y2);
+            obr = new Point(x2, y2);*/
 
         for (var i = 0; i < glyphInstances.length; i++) {
 
@@ -189,9 +211,21 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine, vertic
                 br = obr;
 
             // vertical orientation
-            if (verticalOrientation) {
+            /*if (verticalOrientation) {
                 var sin = Math.sin(Math.PI / 2),
                     cos = Math.cos(Math.PI / 2),
+                    matrix = [cos, -sin, sin, cos];
+
+                tl = tl.matMult(matrix);
+                tr = tr.matMult(matrix);
+                bl = bl.matMult(matrix);
+                br = br.matMult(matrix);
+            }
+            */
+
+            if (verticalOrientation) {
+                var sin = Math.sin(-Math.PI / 2),
+                    cos = Math.cos(-Math.PI / 2),
                     matrix = [cos, -sin, sin, cos];
 
                 tl = tl.matMult(matrix);
@@ -239,7 +273,7 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine, vertic
  * @returns {Array<Object>} glyphInstances
  * @private
  */
-function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward) {
+function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward, verticalOrientation) {
     var upsideDown = !forward;
 
     if (offset < 0) forward = !forward;
@@ -247,6 +281,11 @@ function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward) {
     if (forward) segment++;
 
     var newAnchorPoint = new Point(anchor.x, anchor.y);
+
+    if (verticalOrientation) {
+        //newAnchorPoint.x = newAnchorPoint.x + 
+    };
+
     var end = line[segment];
     var prevScale = Infinity;
 
@@ -255,6 +294,7 @@ function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward) {
     var placementScale = minScale;
 
     while (true) {
+        //console.log("verticalOrientation: " + verticalOrientation);
         var distance = newAnchorPoint.dist(end);
         var scale = offset / distance;
 
@@ -269,6 +309,9 @@ function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward) {
             maxScale: prevScale,
             angle: (angle + 2 * Math.PI) % (2 * Math.PI)
         });
+
+        //console.log("angle: " + angle);
+        //console.log("scale: " + scale + ", placementScale: " + placementScale);
 
         if (scale <= placementScale) break;
 
@@ -288,6 +331,8 @@ function getSegmentGlyphs(glyphs, anchor, offset, line, segment, forward) {
 
         prevScale = scale;
     }
+
+    //console.log("end of segment");
 
     return placementScale;
 }
