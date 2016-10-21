@@ -257,12 +257,13 @@ class SymbolBucket extends Bucket {
         const spacing = layout['text-letter-spacing'] * oneEm;
         const textOffset = [layout['text-offset'][0] * oneEm, layout['text-offset'][1] * oneEm];
         const fontstack = this.fontstack = layout['text-font'].join(',');
+        const textAlongLine = layout['text-rotation-alignment'] === 'map' && layout['symbol-placement'] === 'line';
 
         for (const feature of this.features) {
 
             let shapedTextOrientations = {
                 [Shaping.WritingMode.horizantal]: feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, Shaping.WritingMode.horizantal),
-                [Shaping.WritingMode.vertical]: feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, Shaping.WritingMode.vertical)
+                [Shaping.WritingMode.vertical]: textAlongLine && feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, Shaping.WritingMode.vertical)
             };
 
             let shapedIcon;
@@ -539,7 +540,7 @@ class SymbolBucket extends Bucket {
 
             // drop incorrectly oriented glyphs
             const a = (symbol.anchorAngle + placementAngle + Math.PI) % (Math.PI * 2);
-            if (symbol.writingMode === Shaping.WritingMode.vertical) {
+            if (alongLine && symbol.writingMode === Shaping.WritingMode.vertical) {
                 if (keepUpright && alongLine && a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4)) continue;
             } else {
                 if (keepUpright && alongLine && a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) continue;
