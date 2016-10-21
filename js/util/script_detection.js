@@ -1,6 +1,6 @@
 'use strict';
 
-const isVerticalWritingModeRegExp = new RegExp([
+const verticalRegExp = new RegExp([
     '[ᄀ-ᇿ]',
     '[가-힣]',
     '[ㄱ-ㆎ]',
@@ -18,5 +18,5 @@ const isVerticalWritingModeRegExp = new RegExp([
 ].join('|'));
 
 module.exports.allowsVerticalWritingMode = function(input) {
-    return input.search(isVerticalWritingModeRegExp) !== -1;
+    return input.search(verticalRegExp) !== -1;
 };
