@@ -42,7 +42,6 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
     const yOffset = -17;
 
     let x = 0;
-    let y = yOffset;
 
     text = text.trim();
 
@@ -52,16 +51,20 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
 
         if (!glyph && codePoint !== newLine) continue;
 
-        positionedGlyphs.push(new PositionedGlyph(codePoint, x, y, glyph, writingMode === WritingMode.vertical ? Math.PI / 2 : 0));
+        if (writingMode === WritingMode.horizantal) {
+            positionedGlyphs.push(new PositionedGlyph(codePoint, x, yOffset, glyph, 0));
+            if (glyph) x += glyph.advance + spacing;
 
-        if (glyph) {
-            if (writingMode === WritingMode.horizantal) {
-                x += glyph.advance + spacing;
+        } else if (writingMode === WritingMode.vertical) {
+            positionedGlyphs.push(new PositionedGlyph(
+                codePoint,
+                x,
+                glyph.rect && glyph.rect.h / 2 - 32,
+                glyph,
+                -Math.PI / 2
+            ));
 
-            } else if (writingMode === WritingMode.vertical) {
-                x += verticalHeight + spacing;
-
-            }
+            if (glyph) x += verticalHeight + spacing;
         }
     }
 
