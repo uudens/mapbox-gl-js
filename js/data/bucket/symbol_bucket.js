@@ -262,7 +262,10 @@ class SymbolBucket extends Bucket {
 
         for (const feature of this.features) {
 
-            var isTextCJK = feature.text.match(/t/);
+            var isTextCJK = (
+                feature.text.match(/[ᄀ-ᇿ가-힣ㄱ-ㆎ一-鿌㐀-䶵　-！-￮ぁ-ゟ゠-ヿㇰ-ㇿꀀ-꓆᠀-ᢪ]/) ||
+                feature.text.match(/(\uD840\uDC00-\uFFFF)|(\uD841-\uD872)|(\uD873\u0000-\uDEAF)/)
+            );
 
             let shapedTextOrientations = {
                 [WritingMode.horizantal]: feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizantal),
