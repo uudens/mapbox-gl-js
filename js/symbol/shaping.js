@@ -13,11 +13,12 @@ module.exports = {
 
 
 // The position of a glyph relative to the text's anchor point.
-function PositionedGlyph(codePoint, x, y, glyph) {
+function PositionedGlyph(codePoint, x, y, glyph, angle) {
     this.codePoint = codePoint;
     this.x = x;
     this.y = y;
     this.glyph = glyph || null;
+    this.angle = angle;
 }
 
 // A collection of positioned glyphs and some metadata
@@ -51,14 +52,14 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
 
         if (!glyph && codePoint !== newLine) continue;
 
-        positionedGlyphs.push(new PositionedGlyph(codePoint, x, y, glyph));
+        positionedGlyphs.push(new PositionedGlyph(codePoint, x, y, glyph, writingMode === WritingMode.vertical ? Math.PI / 2 : 0));
 
         if (glyph) {
             if (writingMode === WritingMode.horizantal) {
                 x += glyph.advance + spacing;
 
             } else if (writingMode === WritingMode.vertical) {
-                y += verticalHeight + spacing;
+                x += verticalHeight + spacing;
 
             }
         }
