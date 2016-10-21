@@ -259,11 +259,11 @@ class SymbolBucket extends Bucket {
         const fontstack = this.fontstack = layout['text-font'].join(',');
 
         for (const feature of this.features) {
-            let shapedText;
-            if (feature.text) {
-                shapedText = shapeText(feature.text, stacks[fontstack], maxWidth,
-                        lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset);
-            }
+
+            const shapedTextOrientations = feature.text && {
+                [Shaping.WritingMode.horizantal]: shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, Shaping.WritingMode.horizantal),
+                [Shaping.WritingMode.vertical]: shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, Shaping.WritingMode.vertical)
+            };
 
             let shapedIcon;
             if (feature.icon) {
@@ -284,14 +284,14 @@ class SymbolBucket extends Bucket {
                 }
             }
 
-            if (shapedText || shapedIcon) {
-                this.addFeature(feature, shapedText, shapedIcon);
+            if (shapedTextOrientations || shapedIcon) {
+                this.addFeature(feature, shapedTextOrientations, shapedIcon);
             }
         }
         this.symbolInstancesEndIndex = this.symbolInstancesArray.length;
     }
 
-    addFeature(feature, shapedText, shapedIcon) {
+    addFeature(feature, shapedTextOrientations, shapedIcon) {
         const lines = feature.geometry;
         const layout = this.layer.layout;
 
@@ -336,7 +336,7 @@ class SymbolBucket extends Bucket {
                     line,
                     symbolMinDistance,
                     textMaxAngle,
-                    shapedText,
+                    shapedTextOrientations[Shaping.WritingMode.horizantal],
                     shapedIcon,
                     glyphSize,
                     textMaxBoxScale,
@@ -355,8 +355,8 @@ class SymbolBucket extends Bucket {
             for (let j = 0, len = anchors.length; j < len; j++) {
                 const anchor = anchors[j];
 
-                if (shapedText && isLine) {
-                    if (this.anchorIsTooClose(shapedText.text, textRepeatDistance, anchor)) {
+                if (shapedTextOrientations && isLine) {
+                    if (this.anchorIsTooClose(shapedTextOrientations[Shaping.WritingMode.horizantal].text, textRepeatDistance, anchor)) {
                         continue;
                     }
                 }
@@ -375,7 +375,7 @@ class SymbolBucket extends Bucket {
                 // be drawn across tile boundaries. Instead they need to be included in
                 // the buffers for both tiles and clipped to tile boundaries at draw time.
                 const addToBuffers = inside || mayOverlap;
-                this.addSymbolInstance(anchor, line, shapedText, shapedIcon, this.layer,
+                this.addSymbolInstance(anchor, line, shapedTextOrientations, shapedIcon, this.layer,
                     addToBuffers, this.symbolInstancesArray.length, this.collisionBoxArray, feature.index, this.sourceLayerIndex, this.index,
                     textBoxScale, textPadding, textAlongLine,
                     iconBoxScale, iconPadding, iconAlongLine, {zoom: this.zoom}, feature.properties);
@@ -608,14 +608,16 @@ class SymbolBucket extends Bucket {
         }
     }
 
-    addSymbolInstance(anchor, line, shapedText, shapedIcon, layer, addToBuffers, index, collisionBoxArray, featureIndex, sourceLayerIndex, bucketIndex,
+    addSymbolInstance(anchor, line, shapedTextOrientations, shapedIcon, layer, addToBuffers, index, collisionBoxArray, featureIndex, sourceLayerIndex, bucketIndex,
         textBoxScale, textPadding, textAlongLine,
         iconBoxScale, iconPadding, iconAlongLine, globalProperties, featureProperties) {
 
-        let textCollisionFeature, iconCollisionFeature, glyphQuads, iconQuads;
-        if (shapedText) {
-            glyphQuads = addToBuffers ? getGlyphQuads(anchor, shapedText, textBoxScale, line, layer, textAlongLine) : [];
-            textCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedText, textBoxScale, textPadding, textAlongLine, false);
+        let textCollisionFeature, iconCollisionFeature, iconQuads;
+        let glyphQuads = [];
+        for (const writingModeString in shapedTextOrientations) {
+            const writingMode = parseInt(writingModeString, 10);
+            glyphQuads = glyphQuads.concat(addToBuffers ? getGlyphQuads(anchor, shapedTextOrientations[writingMode], textBoxScale, line, layer, textAlongLine, writingMode) : []);
+            textCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedTextOrientations[writingMode], textBoxScale, textPadding, textAlongLine, false);
         }
 
         const glyphQuadStartIndex = this.symbolQuadsArray.length;
@@ -630,7 +632,7 @@ class SymbolBucket extends Bucket {
         const textBoxEndIndex = textCollisionFeature ? textCollisionFeature.boxEndIndex : this.collisionBoxArray.length;
 
         if (shapedIcon) {
-            iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layer, iconAlongLine, shapedText, globalProperties, featureProperties) : [];
+            iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layer, iconAlongLine, shapedTextOrientations[Shaping.WritingMode.horizantal], globalProperties, featureProperties) : [];
             iconCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedIcon, iconBoxScale, iconPadding, iconAlongLine, true);
         }
 
