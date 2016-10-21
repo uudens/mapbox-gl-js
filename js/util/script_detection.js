@@ -13,7 +13,7 @@ const ideographicBreakingRegExp = new RegExp([
     '[ꀀ-꓆]'
 ].join('|'));
 
-module.exports.allowsBalancedBreaking = function(input) {
+module.exports.allowsIdeographicBreaking = function(input) {
     return input.search(ideographicBreakingRegExp) !== -1;
 };
 
