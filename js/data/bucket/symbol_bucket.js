@@ -551,15 +551,11 @@ class SymbolBucket extends Bucket {
 
             // drop incorrectly oriented glyphs
             const a = (symbol.anchorAngle + placementAngle + Math.PI) % (Math.PI * 2);
-            if (keepUpright && alongLine && writingModes & WritingMode.vertical) {
-                if (symbol.writingMode === WritingMode.vertical && (a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4))) {
-                    continue;
-                } else if (a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) {
-                    continue;
-                }
-            } else if (a <= Math.PI / 2 || a > Math.PI * 3 / 2) {
-                continue;
-            }
+            if (writingModes & WritingMode.vertical) {
+                if (alongLine && symbol.writingMode === WritingMode.vertical) {
+                    if (keepUpright && alongLine && a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4)) continue;
+                } else if (keepUpright && alongLine && a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) continue;
+            } else if (keepUpright && alongLine && (a <= Math.PI / 2 || a > Math.PI * 3 / 2)) continue;
 
             const tl = symbol.tl,
                 tr = symbol.tr,
