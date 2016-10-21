@@ -1,7 +1,5 @@
 'use strict';
 
-// please keep the comments below up to date!
-
 const isVerticalWritingModeRegExp = new RegExp([
     '[ᄀ-ᇿ]',
     '[가-힣]',
