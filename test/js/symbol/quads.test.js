@@ -46,7 +46,8 @@ test('getIconQuads', (t) => {
                 anchorAngle: 0,
                 glyphAngle: 0,
                 minScale: 0.5,
-                maxScale: Infinity
+                maxScale: Infinity,
+                writingMode: null
             }]);
         t.end();
     });
@@ -67,7 +68,8 @@ test('getIconQuads', (t) => {
                 anchorAngle: 0,
                 glyphAngle: 0,
                 minScale: 0.5,
-                maxScale: Infinity
+                maxScale: Infinity,
+                writingMode: null
             }]);
         t.end();
     });

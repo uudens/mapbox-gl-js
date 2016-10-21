@@ -4,7 +4,6 @@ const test = require('mapbox-gl-js-test').test;
 const fs = require('fs');
 const path = require('path');
 const shaping = require('../../../js/symbol/shaping');
-const WritingMode = shaping.WritingMode;
 
 let UPDATE = false;
 if (typeof process !== 'undefined' && process.env !== undefined) {
@@ -49,7 +48,7 @@ test('shaping', (t) => {
     t.deepEqual(shaped, expectedNewLine);
 
     shaped = shaping.shapeText('abcde\r\nabcde', glyphs, 15 * oneEm, oneEm, 0.5, 0.5, 0.5, 0, [0, 0], oneEm);
-    t.deepEqual(shaped.positionedGlyphs[WritingMode.horizantal], expectedNewLine.positionedGlyphs[WritingMode.horizantal]);
+    t.deepEqual(shaped.positionedGlyphs, expectedNewLine.positionedGlyphs);
 
     // Null shaping.
     shaped = shaping.shapeText('', glyphs, 15 * oneEm, oneEm, 0.5, 0.5, 0.5, 0 * oneEm, [0, 0], oneEm);
@@ -61,7 +60,7 @@ test('shaping', (t) => {
     // https://github.com/mapbox/mapbox-gl-js/issues/3254
     shaped = shaping.shapeText('   foo bar\n', glyphs, 15 * oneEm, oneEm, 0.5, 0.5, 0.5, 0 * oneEm, [0, 0], oneEm);
     const shaped2 = shaping.shapeText('foo bar', glyphs, 15 * oneEm, oneEm, 0.5, 0.5, 0.5, 0 * oneEm, [0, 0], oneEm);
-    t.same(shaped.positionedGlyphs[WritingMode.horizantal], shaped2.positionedGlyphs[WritingMode.horizantal]);
+    t.same(shaped.positionedGlyphs, shaped2.positionedGlyphs);
 
     t.end();
 });

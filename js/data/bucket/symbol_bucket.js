@@ -262,16 +262,21 @@ class SymbolBucket extends Bucket {
 
         for (const feature of this.features) {
 
-            const requiresVerticalWritingMode = (
-                // eslint-disable-next-line
-                feature.text.match(/[ᄀ-ᇿ가-힣ㄱ-ㆎ一-鿌㐀-䶵　-！-￮ぁ-ゟ゠-ヿㇰ-ㇿꀀ-꓆᠀-ᢪ]/) ||
-                feature.text.match(/(\uD840\uDC00-\uFFFF)|(\uD841-\uD872)|(\uD873\u0000-\uDEAF)/)
-            );
+            let shapedTextOrientations;
+            if (feature.text) {
+                const requiresVerticalWritingMode = (
+                    // eslint-disable-next-line
+                    feature.text.match(/[ᄀ-ᇿ가-힣ㄱ-ㆎ一-鿌㐀-䶵　-！-￮ぁ-ゟ゠-ヿㇰ-ㇿꀀ-꓆᠀-ᢪ]/) ||
+                    feature.text.match(/(\uD840\uDC00-\uFFFF)|(\uD841-\uD872)|(\uD873\u0000-\uDEAF)/)
+                );
 
-            const shapedTextOrientations = {
-                [WritingMode.horizantal]: feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizantal),
-                [WritingMode.vertical]: requiresVerticalWritingMode && textAlongLine && feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.vertical)
-            };
+                shapedTextOrientations = {
+                    [WritingMode.horizantal]: shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizantal),
+                    [WritingMode.vertical]: requiresVerticalWritingMode && textAlongLine && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.vertical)
+                };
+            } else {
+                shapedTextOrientations = {};
+            }
 
             let shapedIcon;
             if (feature.icon) {
