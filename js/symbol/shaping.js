@@ -1,8 +1,14 @@
 'use strict';
 
+const WritingMode = {
+    horizantal: 1,
+    vertical: 2
+};
+
 module.exports = {
     shapeText: shapeText,
-    shapeIcon: shapeIcon
+    shapeIcon: shapeIcon,
+    WritingMode: WritingMode
 };
 
 
@@ -26,7 +32,7 @@ function Shaping(positionedGlyphs, text, top, bottom, left, right) {
 
 const newLine = 0x0a;
 
-function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, translate) {
+function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, translate, verticalHeight, writingMode) {
 
     const positionedGlyphs = [];
     const shaping = new Shaping(positionedGlyphs, text, translate[1], translate[1], translate[0], translate[0]);
@@ -35,7 +41,7 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
     const yOffset = -17;
 
     let x = 0;
-    const y = yOffset;
+    let y = yOffset;
 
     text = text.trim();
 
@@ -48,13 +54,18 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
         positionedGlyphs.push(new PositionedGlyph(codePoint, x, y, glyph));
 
         if (glyph) {
-            x += glyph.advance + spacing;
+            if (writingMode === WritingMode.horizantal) {
+                x += glyph.advance + spacing;
+
+            } else if (writingMode === WritingMode.vertical) {
+                y += verticalHeight + spacing;
+
+            }
         }
     }
 
     if (!positionedGlyphs.length) return false;
-
-    linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate);
+    linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode);
 
     return shaping;
 }
@@ -79,7 +90,7 @@ const breakable = {
 
 invisible[newLine] = breakable[newLine] = true;
 
-function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate) {
+function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode) {
     let lastSafeBreak = null;
     let lengthBeforeCurrentLine = 0;
     let lineStartIndex = 0;
@@ -89,7 +100,7 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
 
     const positionedGlyphs = shaping.positionedGlyphs;
 
-    if (maxWidth) {
+    if (writingMode === WritingMode.horizantal && maxWidth) {
         for (let i = 0; i < positionedGlyphs.length; i++) {
             const positionedGlyph = positionedGlyphs[i];
 
