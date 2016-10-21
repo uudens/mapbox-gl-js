@@ -262,14 +262,15 @@ class SymbolBucket extends Bucket {
 
         for (const feature of this.features) {
 
-            var isTextCJK = (
+            const requiresVerticalWritingMode = (
+                // eslint-disable-next-line
                 feature.text.match(/[ᄀ-ᇿ가-힣ㄱ-ㆎ一-鿌㐀-䶵　-！-￮ぁ-ゟ゠-ヿㇰ-ㇿꀀ-꓆᠀-ᢪ]/) ||
                 feature.text.match(/(\uD840\uDC00-\uFFFF)|(\uD841-\uD872)|(\uD873\u0000-\uDEAF)/)
             );
 
-            let shapedTextOrientations = {
+            const shapedTextOrientations = {
                 [WritingMode.horizantal]: feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizantal),
-                [WritingMode.vertical]: isTextCJK && textAlongLine && feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.vertical)
+                [WritingMode.vertical]: requiresVerticalWritingMode && textAlongLine && feature.text && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.vertical)
             };
 
             let shapedIcon;
@@ -337,7 +338,6 @@ class SymbolBucket extends Bucket {
             let line = null;
 
             // Calculate the anchor points around which you want to place labels
-            // TODO what would we do with orientation-specific anchors?
             if (isLine) {
                 line = pointsOrRings;
                 anchors = getAnchors(
@@ -546,14 +546,14 @@ class SymbolBucket extends Bucket {
 
             // drop incorrectly oriented glyphs
             const a = (symbol.anchorAngle + placementAngle + Math.PI) % (Math.PI * 2);
-            if (writingModes & WritingMode.vertical) {
-                if (alongLine && symbol.writingMode === WritingMode.vertical) {
-                    if (keepUpright && alongLine && a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4)) continue;
-                } else {
-                    if (keepUpright && alongLine && a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) continue;
+            if (keepUpright && alongLine && writingModes & WritingMode.vertical) {
+                if (symbol.writingMode === WritingMode.vertical && (a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4))) {
+                    continue;
+                } else if (a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) {
+                    continue;
                 }
-            } else {
-                if (keepUpright && alongLine && (a <= Math.PI / 2 || a > Math.PI * 3 / 2)) continue;
+            } else if (a <= Math.PI / 2 || a > Math.PI * 3 / 2) {
+                continue;
             }
 
             const tl = symbol.tl,
