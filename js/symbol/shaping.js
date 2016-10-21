@@ -5,6 +5,8 @@ const WritingMode = {
     vertical: 2
 };
 
+const scriptDetection = require('../util/script_detection');
+
 module.exports = {
     shapeText: shapeText,
     shapeIcon: shapeIcon,
@@ -70,7 +72,7 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
     }
 
     if (!positionedGlyphs.length) return false;
-    linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode);
+    linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode, scriptDetection.allowsBalancedBreaking(text));
 
     return shaping;
 }
@@ -95,7 +97,7 @@ const breakable = {
 
 invisible[newLine] = breakable[newLine] = true;
 
-function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode) {
+function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, verticalAlign, justify, translate, writingMode, allowsBalancedBreaking) {
     let lastSafeBreak = null;
     let lengthBeforeCurrentLine = 0;
     let lineStartIndex = 0;
@@ -139,7 +141,7 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
                 line++;
             }
 
-            if (breakable[positionedGlyph.codePoint]) {
+            if (allowsBalancedBreaking || breakable[positionedGlyph.codePoint]) {
                 lastSafeBreak = i;
             }
         }
