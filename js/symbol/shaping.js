@@ -108,6 +108,13 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
     const positionedGlyphs = shaping.positionedGlyphs;
 
     if (writingMode === WritingMode.horizontal && maxWidth) {
+
+        if (allowsIdeographicBreaking) {
+            const lastPositionedGlyph = positionedGlyphs[positionedGlyphs.length - 1];
+            const estimatedLineCount = Math.max(1, Math.ceil(lastPositionedGlyph.x / maxWidth));
+            maxWidth = lastPositionedGlyph.x / estimatedLineCount;
+        }
+
         for (let i = 0; i < positionedGlyphs.length; i++) {
             const positionedGlyph = positionedGlyphs[i];
 
