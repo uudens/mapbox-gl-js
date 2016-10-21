@@ -330,6 +330,7 @@ class SymbolBucket extends Bucket {
             let line = null;
 
             // Calculate the anchor points around which you want to place labels
+            // TODO what would we do with orientation-specific anchors?
             if (isLine) {
                 line = pointsOrRings;
                 anchors = getAnchors(
