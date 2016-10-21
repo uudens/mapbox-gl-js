@@ -29,7 +29,7 @@ const minScale = 0.5; // underscale by 1 zoom level
  * @class SymbolQuad
  * @private
  */
-function SymbolQuad(anchorPoint, tl, tr, bl, br, tex, anchorAngle, glyphAngle, minScale, maxScale) {
+function SymbolQuad(anchorPoint, tl, tr, bl, br, tex, anchorAngle, glyphAngle, minScale, maxScale, writingMode) {
     this.anchorPoint = anchorPoint;
     this.tl = tl;
     this.tr = tr;
@@ -40,6 +40,7 @@ function SymbolQuad(anchorPoint, tl, tr, bl, br, tex, anchorAngle, glyphAngle, m
     this.glyphAngle = glyphAngle;
     this.minScale = minScale;
     this.maxScale = maxScale;
+    this.writingMode = writingMode;
 }
 
 /**
@@ -207,7 +208,7 @@ function getGlyphQuads(anchor, shaping, boxScale, line, layer, alongLine) {
 
             const anchorAngle = (anchor.angle + instance.offset + 2 * Math.PI) % (2 * Math.PI);
             const glyphAngle = (instance.angle + instance.offset + 2 * Math.PI) % (2 * Math.PI);
-            quads.push(new SymbolQuad(instance.anchorPoint, tl, tr, bl, br, rect, anchorAngle, glyphAngle, glyphMinScale, instance.maxScale));
+            quads.push(new SymbolQuad(instance.anchorPoint, tl, tr, bl, br, rect, anchorAngle, glyphAngle, glyphMinScale, instance.maxScale, shaping.writingMode));
         }
     }
 

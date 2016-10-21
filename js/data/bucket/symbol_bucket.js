@@ -537,9 +537,13 @@ class SymbolBucket extends Bucket {
 
             const symbol = this.symbolQuadsArray.get(k).SymbolQuad;
 
-            // drop upside down versions of glyphs
+            // drop incorrectly oriented glyphs
             const a = (symbol.anchorAngle + placementAngle + Math.PI) % (Math.PI * 2);
-            if (keepUpright && alongLine && (a <= Math.PI / 2 || a > Math.PI * 3 / 2)) continue;
+            if (symbol.writingMode === Shaping.WritingMode.vertical) {
+                if (keepUpright && alongLine && a <= (Math.PI * 5 / 4) || a > (Math.PI * 7 / 4)) continue;
+            } else {
+                if (keepUpright && alongLine && a <= (Math.PI * 3 / 4) || a > (Math.PI * 5 / 4)) continue;
+            }
 
             const tl = symbol.tl,
                 tr = symbol.tr,
@@ -687,7 +691,9 @@ class SymbolBucket extends Bucket {
             symbolQuad.glyphAngle,
             // scales
             symbolQuad.maxScale,
-            symbolQuad.minScale);
+            symbolQuad.minScale,
+            // writing mode
+            symbolQuad.writingMode);
     }
 }
 
