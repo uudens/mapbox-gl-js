@@ -1,7 +1,7 @@
 'use strict';
 
 const WritingMode = {
-    horizantal: 1,
+    horizontal: 1,
     vertical: 2
 };
 
@@ -52,7 +52,7 @@ function shapeText(text, glyphs, maxWidth, lineHeight, horizontalAlign, vertical
 
         if (!glyph && codePoint !== newLine) continue;
 
-        if (writingMode === WritingMode.horizantal) {
+        if (writingMode === WritingMode.horizontal) {
             positionedGlyphs.push(new PositionedGlyph(codePoint, x, yOffset, glyph, 0));
             if (glyph) x += glyph.advance + spacing;
 
@@ -105,7 +105,7 @@ function linewrap(shaping, glyphs, lineHeight, maxWidth, horizontalAlign, vertic
 
     const positionedGlyphs = shaping.positionedGlyphs;
 
-    if (writingMode === WritingMode.horizantal && maxWidth) {
+    if (writingMode === WritingMode.horizontal && maxWidth) {
         for (let i = 0; i < positionedGlyphs.length; i++) {
             const positionedGlyph = positionedGlyphs[i];
 

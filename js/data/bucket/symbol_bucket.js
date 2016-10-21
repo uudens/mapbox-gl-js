@@ -270,7 +270,7 @@ class SymbolBucket extends Bucket {
                 );
 
                 shapedTextOrientations = {
-                    [WritingMode.horizantal]: shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizantal),
+                    [WritingMode.horizontal]: shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.horizontal),
                     [WritingMode.vertical]: requiresVerticalWritingMode && textAlongLine && shapeText(feature.text, stacks[fontstack], maxWidth, lineHeight, horizontalAlign, verticalAlign, justify, spacing, textOffset, oneEm, WritingMode.vertical)
                 };
             } else {
@@ -296,7 +296,7 @@ class SymbolBucket extends Bucket {
                 }
             }
 
-            if (shapedTextOrientations[WritingMode.horizantal] || shapedIcon) {
+            if (shapedTextOrientations[WritingMode.horizontal] || shapedIcon) {
                 this.addFeature(feature, shapedTextOrientations, shapedIcon);
             }
         }
@@ -348,7 +348,7 @@ class SymbolBucket extends Bucket {
                     line,
                     symbolMinDistance,
                     textMaxAngle,
-                    shapedTextOrientations[WritingMode.vertical] || shapedTextOrientations[WritingMode.horizantal],
+                    shapedTextOrientations[WritingMode.vertical] || shapedTextOrientations[WritingMode.horizontal],
                     shapedIcon,
                     glyphSize,
                     textMaxBoxScale,
@@ -367,8 +367,8 @@ class SymbolBucket extends Bucket {
             for (let j = 0, len = anchors.length; j < len; j++) {
                 const anchor = anchors[j];
 
-                if (shapedTextOrientations[WritingMode.horizantal] && isLine) {
-                    if (this.anchorIsTooClose(shapedTextOrientations[WritingMode.horizantal].text, textRepeatDistance, anchor)) {
+                if (shapedTextOrientations[WritingMode.horizontal] && isLine) {
+                    if (this.anchorIsTooClose(shapedTextOrientations[WritingMode.horizontal].text, textRepeatDistance, anchor)) {
                         continue;
                     }
                 }
@@ -649,7 +649,7 @@ class SymbolBucket extends Bucket {
         const textBoxEndIndex = textCollisionFeature ? textCollisionFeature.boxEndIndex : this.collisionBoxArray.length;
 
         if (shapedIcon) {
-            iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layer, iconAlongLine, shapedTextOrientations[WritingMode.horizantal], globalProperties, featureProperties) : [];
+            iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layer, iconAlongLine, shapedTextOrientations[WritingMode.horizontal], globalProperties, featureProperties) : [];
             iconCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedIcon, iconBoxScale, iconPadding, iconAlongLine, true);
         }
 
@@ -666,7 +666,7 @@ class SymbolBucket extends Bucket {
 
         const writingModes = (
             (shapedTextOrientations[WritingMode.vertical] ? WritingMode.vertical : 0) |
-            (shapedTextOrientations[WritingMode.horizantal] ? WritingMode.horizantal : 0)
+            (shapedTextOrientations[WritingMode.horizontal] ? WritingMode.horizontal : 0)
         );
 
         return this.symbolInstancesArray.emplaceBack(
