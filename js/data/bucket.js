@@ -28,7 +28,6 @@ class Bucket {
         this.overscaling = options.overscaling;
         this.layers = options.layers;
         this.index = options.index;
-
         if (options.arrays) {
             this.buffers = new BufferGroup(programInterface, options.layers, options.zoom, options.arrays);
         } else {
