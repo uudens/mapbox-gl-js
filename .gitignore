@@ -11,3 +11,8 @@ coverage
 .nyc_output
 *_generated.js
 yarn.lock
+test/integration/render-tests/*/*/actual.png
+test/integration/render-tests/*/*/diff.png
+test/integration/render-tests/index.html
+test/integration/query-tests/index.html
+test/integration/query-tests/*/*/actual.png
