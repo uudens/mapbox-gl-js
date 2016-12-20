@@ -18,5 +18,4 @@ if [ "$CIRCLE_BRANCH" == "master" ] || [ -n "$CIRCLE_TAG" ]; then
 fi
 
 # Install git-lfs https://discuss.circleci.com/t/installing-git-lfs/867
-brew install git-lfs
 ssh git@github.com git-lfs-authenticate mapbox/mapbox-gl-js.git download
