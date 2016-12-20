@@ -6,10 +6,6 @@ machine:
     XCODE_WORKSPACE: "no"
     NODE_VERSION: 6
 
-checkout:
-  post:
-    - "ssh git@github.com git-lfs-authenticate mapbox/mapbox-gl-js.git download"
-    - "git lfs pull"
 dependencies:
   cache_directories:
     - './nvm'
