@@ -16,8 +16,3 @@ fi
 if [ "$CIRCLE_BRANCH" == "master" ] || [ -n "$CIRCLE_TAG" ]; then
     pip install --user --upgrade awscli
 fi
-
-# Install git-lfs https://discuss.circleci.com/t/installing-git-lfs/867
-ssh git@github.com git-lfs-authenticate mapbox/mapbox-gl-js.git download
-
-git lfs pull
