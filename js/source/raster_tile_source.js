@@ -65,18 +65,18 @@ class RasterTileSource extends Evented {
             }
 
             const gl = this.map.painter.gl;
-            var dem;
-            if (this.id==='terrain') {
-                dem = new DEMPyramid();
-                dem.loadFromImage(img);
-            }
+            // var dem;
+            // if (this.id==='terrain') {
+            //     dem = new DEMPyramid();
+            //     dem.loadFromImage(img);
+            // }
 
             tile.texture = this.map.painter.getTileTexture(img.width);
             if (tile.texture) {
                 gl.bindTexture(gl.TEXTURE_2D, tile.texture);
                 gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, dem ? dem.levels[0].data : img);
             } else {
-                console.log(dem.levels[0].data);
+                // console.log(dem.levels[0].data);
                 tile.texture = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_2D, tile.texture);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
