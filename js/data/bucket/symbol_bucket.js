@@ -716,6 +716,8 @@ class SymbolBucket {
     }
 }
 
+SymbolBucket.programInterfaces = symbolInterfaces;
+
 // this constant is based on the size of the glyphQuadEndIndex and iconQuadEndIndex
 // in the symbol_instances StructArrayType
 // eg the max valid UInt16 is 65,535
