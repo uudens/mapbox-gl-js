@@ -47,7 +47,7 @@ const symbolInterfaces = {
         layoutVertexArrayType: layoutVertexArrayType,
         elementArrayType: elementArrayType
     },
-    collisionBox: {
+    collisionBox: { // used to render collision boxes for debugging purposes
         layoutVertexArrayType: createVertexArrayType([
             {name: 'a_pos',     components: 2, type: 'Int16'},
             {name: 'a_extrude', components: 2, type: 'Int16'},
@@ -90,6 +90,32 @@ function addCollisionBoxVertex(layoutVertexArray, point, extrude, maxZoom, place
         maxZoom * 10,
         placementZoom * 10);
 }
+
+/*
+ * Unlike other buckets, which simply implement #addFeature with type-specific
+ * logic for (essentially) triangulating feature geometries, SymbolBucket
+ * requires specialized behavior:
+ *
+ * 1. WorkerTile#parse(), the logical owner of the bucket creation process,
+ *    calls SymbolBucket#populate(), which resolves text and icon tokens on
+ *    each feature, adds each glyphs and symbols needed to the passed-in
+ *    collections options.glyphDependencies and options.iconDependencies, and
+ *    stores the feature data for use in subsequent step (this.features).
+ *
+ * 2. WorkerTile asynchronously requests from the main thread all of the glyphs
+ *    and icons needed (by this bucket and any others). When glyphs and icons
+ *    have been received, the WorkerTile creates a CollisionTile and invokes:
+ *
+ * 3. SymbolBucket#prepare(stacks, icons) to perform text shaping and layout, populating `this.symbolInstancesArray`, `this.symbolQuadsArray`, and `this.collisionBoxArray`.
+ *
+ * 4. SymbolBucket#place(collisionTile): taking collisions into account, decide on which labels and icons to actually draw and at which scale, populating the vertex arrays (`this.arrays.glyph`, `this.arrays.icon`) and thus completing the parsing / buffer population process.
+ *
+ * The reason that `prepare` and `place` are separate methods is that
+ * `prepare`, being independent of pitch and orientation, only needs to happen
+ * at tile load time, whereas `place` must be invoked on already-loaded tiles
+ * when the pitch/orientation are changed. (See `redoPlacement`.)
+ *
+ */
 
 class SymbolBucket {
     constructor(options) {
@@ -275,7 +301,7 @@ class SymbolBucket {
             layout['text-justify'] === 'left' ? 0 :
             0.5;
 
-        const oneEm = 24;
+        const oneEm = 24; // TODO: magic number
         const lineHeight = layout['text-line-height'] * oneEm;
         const maxWidth = layout['symbol-placement'] !== 'line' ? layout['text-max-width'] * oneEm : 0;
         const spacing = layout['text-letter-spacing'] * oneEm;
@@ -634,7 +660,8 @@ class SymbolBucket {
         for (const writingModeString in shapedTextOrientations) {
             const writingMode = parseInt(writingModeString, 10);
             if (!shapedTextOrientations[writingMode]) continue;
-            glyphQuads = glyphQuads.concat(addToBuffers ? getGlyphQuads(anchor, shapedTextOrientations[writingMode], textBoxScale, line, layer, textAlongLine, writingMode) : []);
+            glyphQuads = glyphQuads.concat(addToBuffers ? getGlyphQuads(anchor, shapedTextOrientations[writingMode], textBoxScale, line, layer, textAlongLine) : []);
+            // TODO: Since (I believe) shapedTextOrientations can have more than one entry, it's unclear why we create this single textCollisionFeature within this loop.
             textCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedTextOrientations[writingMode], textBoxScale, textPadding, textAlongLine, false);
         }
 
@@ -670,6 +697,7 @@ class SymbolBucket {
             (shapedTextOrientations[WritingMode.horizontal] ? WritingMode.horizontal : 0)
         );
 
+        // TODO: why is symbolInstancesArray shared across the buckets in a tile?
         return this.symbolInstancesArray.emplaceBack(
             textBoxStartIndex,
             textBoxEndIndex,
