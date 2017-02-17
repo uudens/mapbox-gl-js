@@ -2,6 +2,7 @@
 
 const ajax =  require('../src/util/ajax');
 const sinon = require('sinon');
+const fs = require('fs');
 const request = require('request');
 const PNG = require('pngjs').PNG;
 const Map = require('../src/ui/map');
@@ -13,7 +14,37 @@ const rtlText = require('@mapbox/mapbox-gl-rtl-text');
 rtlTextPlugin['applyArabicShaping'] = rtlText.applyArabicShaping;
 rtlTextPlugin['processBidirectionalText'] = rtlText.processBidirectionalText;
 
+function pixelsToPNGStream(pixels, width, height) {
+  const png = new PNG({ width, height })
+
+  let a
+  let b
+  let g
+  let k
+  let m
+  let r
+  for (let j = 0; j < height; j++) {
+    for (let i = 0; i < width; i++) {
+      k = j * width + i
+      r = pixels[4 * k]
+      g = pixels[4 * k + 1]
+      b = pixels[4 * k + 2]
+      a = pixels[4 * k + 3]
+      m = (height - j + 1) * width + i
+      png.data[4 * m] = r
+      png.data[4 * m + 1] = g
+      png.data[4 * m + 2] = b
+      png.data[4 * m + 3] = a
+    }
+  }
+  return png.pack()
+}
+
 module.exports = function(style, options, _callback) {
+
+    options.width = 6000
+    options.height = 6000
+
     let wasCallbackCalled = false;
     function callback() {
         if (!wasCallbackCalled) {
@@ -75,11 +106,18 @@ module.exports = function(style, options, _callback) {
             gl.getExtension('STACKGL_destroy_context').destroy();
             delete map.painter.gl;
 
-            callback(null, data, results.map((feature) => {
-                feature = feature.toJSON();
-                delete feature.layer;
-                return feature;
-            }));
+            pixelsToPNGStream(pixels, w, h)
+                .pipe(fs.createWriteStream('./out.png'))
+                .on('finish', () => {
+                    console.log('done');
+                    process.exit();
+                });
+
+            // callback(null, data, results.map((feature) => {
+            //     feature = feature.toJSON();
+            //     delete feature.layer;
+            //     return feature;
+            // }));
 
         });
     });
@@ -134,7 +172,7 @@ sinon.stub(ajax, 'getJSON', (url, callback) => {
 
 sinon.stub(ajax, 'getArrayBuffer', (url, callback) => {
     if (cache[url]) return cached(cache[url], callback);
-    return request({url: url, encoding: null}, (error, response, body) => {
+    return request({url: url, encoding: null, gzip: true}, (error, response, body) => {
         if (!error && response.statusCode >= 200 && response.statusCode < 300) {
             cache[url] = {data: body};
             callback(null, {data: body});
@@ -146,7 +184,7 @@ sinon.stub(ajax, 'getArrayBuffer', (url, callback) => {
 
 sinon.stub(ajax, 'getImage', (url, callback) => {
     if (cache[url]) return cached(cache[url], callback);
-    return request({url: url, encoding: null}, (error, response, body) => {
+    return request({url: url, encoding: null, gzip: true}, (error, response, body) => {
         if (!error && response.statusCode >= 200 && response.statusCode < 300) {
             new PNG().parse(body, (err, png) => {
                 if (err) return callback(err);
